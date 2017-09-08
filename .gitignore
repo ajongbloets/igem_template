@@ -7,3 +7,6 @@
 .sass-cache
 build/
 Gemfile.lock
+
+# ignore ini file
+*.ini

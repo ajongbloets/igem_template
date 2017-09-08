@@ -18,7 +18,7 @@ def load_ini(ini_fn):
         try:
             cfg = configparser.SafeConfigParser()
             cfg.read(ini_fn)
-            results = cfg.items()
+            results = cfg.items("igem")
         except configparser.Error:
             print("Cannot load: {}".format(ini_fn))
     return results
@@ -26,8 +26,8 @@ def load_ini(ini_fn):
 
 class iGemUploader(object):
 
-    api_url = "https://2017.igem_template.org/wiki/api.php"
-    login_url = "https://igem_template.org/Login2"
+    api_url = "https://2017.igem.org/wiki/api.php"
+    login_url = "https://igem.org/Login2"
 
     def __init__(self, year=None, team=None, prefix=None):
         if year is None:
@@ -66,17 +66,17 @@ class iGemUploader(object):
         self._dry = state is True
 
     def get_base_url(self):
-        return "http://{}.igem_template.org".format(self.year)
+        return "http://{}.igem.org".format(self.year)
 
     def get_api_url(self):
-        return "https://{}.igem_template.org/wiki/api.php".format(self.year)
+        return "https://{}.igem.org/wiki/api.php".format(self.year)
 
     def get_login_url(self):
-        return "https://igem_template.org/Login2"
+        return "https://igem.org/Login2"
 
     def login(self, username, password):
         session = self._session
-        # login to igem_template
+        # login to igem
         if self.runs_dry():
             self._token = "--DRY RUN -- "
         else:

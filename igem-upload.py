@@ -1,8 +1,27 @@
 #!/usr/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import requests
 import glob
 import os
+import sys
+
+if sys.version_info[0] < 3:
+    import ConfigParser as configparser
+else:
+    import configparser
+
+
+def load_ini(ini_fn):
+    results = {}
+    if os.path.exists(ini_fn):
+        try:
+            cfg = configparser.SafeConfigParser()
+            cfg.read(ini_fn)
+            results = cfg.items()
+        except configparser.Error:
+            print("Cannot load: {}".format(ini_fn))
+    return results
 
 
 class iGemUploader(object):
@@ -266,6 +285,10 @@ if __name__ == "__main__":
     )
 
     arguments = vars(p.parse_args())
+    ini_file = arguments.get("ini")
+    if isinstance(ini_file, str):
+        settings = load_ini(ini_file)
+        arguments.update(settings)
     team = arguments.get("team")
     year = arguments.get("year")
     prefix = arguments.get("prefix")

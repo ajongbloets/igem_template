@@ -1,4 +1,4 @@
-#!/usr/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import requests
@@ -296,14 +296,16 @@ if __name__ == "__main__":
     u.run_dry(arguments.get("dry"))
     username = arguments.get("username")
     password = arguments.get("password")
-    # TODO: Load ini file
+    strip = arguments.get("strip")
+    if isinstance(strip, str):
+        strip = strip.lower() in ("1", "true")
     result = u.login(username, password)
     if result:
         print("Login successfull. Token = {}".format(u.token))
         files = arguments.get("files")
         for fn in files:
             base = None
-            if arguments.get("strip") is True:
+            if strip is True:
                 base = os.path.dirname(fn)
             u.upload_files(fn, base)
     print("Done")

@@ -18,8 +18,14 @@
   }
 }
 
+/* normalize heights */
+
 html,
 body,
-#BodyContent {
-  height: 98%;
+#globalWrapper,
+#content,
+#HQ_page,
+#BodyContent,
+#mw-content-text {
+  height: 100%;
 }

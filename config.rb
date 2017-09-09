@@ -54,5 +54,8 @@ end
 
 # Reload the browser automatically whenever files change
 configure :development do
-  activate :livereload
+	activate :livereload
+
+	# When in development Publish using iGEM Wiki Layout
+	page "/*", :layout => :wiki_layout
 end

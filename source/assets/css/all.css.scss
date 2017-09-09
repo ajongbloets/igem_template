@@ -1,7 +1,21 @@
 @charset "utf-8";
 
-// Import includes
-@import "bootstrap";
+/* Import includes */
+#bodyContent {
+    @import "bootstrap";
+    @import "cover";
+}
 
-//@import "inline";
-//@import "tweaks";
+html,
+body ,
+#bodyContent,
+#mw-content-text {
+  height: 100%;
+  background-color: #333;
+}
+
+#bodyContent {
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 .05rem .1rem rgba(0,0,0,.5);
+}

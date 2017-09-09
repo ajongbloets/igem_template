@@ -44,6 +44,8 @@ page '/*.txt', layout: false
 #   end
 # end
 
+ignore 'assets/css/_partials/*'
+
 # Build-specific configuration
 # https://middlemanapp.com/advanced/configuration/#environment-specific-settings
 
@@ -57,5 +59,5 @@ configure :development do
 	activate :livereload
 
 	# When in development Publish using iGEM Wiki Layout
-	page "/*", :layout => :wiki_layout
+	# page "/*", :layout => :wiki_layout
 end

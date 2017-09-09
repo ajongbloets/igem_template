@@ -10,6 +10,11 @@ import glob
 import os
 import sys
 
+if sys.version_info[0] < 3:
+    from urlparse import urlparse, urlunparse
+else:
+    from urllib.parse import urlparse, urlunparse
+
 __author__ = "Joeri Jongbloets <joeri@jongbloets.net>"
 
 
@@ -67,13 +72,18 @@ class IGemUploader(IGemWikiManager):
         result = False
         extension = source.rsplit(".", 1)[1]
         if extension == "html":
+            # html
             result = self.upload_html(source, destination)
         if extension in ("js", "css"):
+            # js and css
             result = self.upload_resource(source, destination)
-        # images
+        else:
+            # images
+            result = self.upload_attachment(source, destination)
         return result
 
     def upload_html(self, source, destination=None):
+        """Upload Sanitized HTMl Files"""
         result = False
         # remove any .html extension from the file
         if destination is None:
@@ -94,6 +104,7 @@ class IGemUploader(IGemWikiManager):
         return result
 
     def upload_resource(self, source, destination=None):
+        """Upload CSS and JavaScript resources"""
         result = False
         if destination is None:
             destination = source
@@ -111,48 +122,90 @@ class IGemUploader(IGemWikiManager):
             result = self.edit(name, content)
         return result
 
+    def upload_attachment(self, source, destination=None):
+        """Upload attachments like Images, PDFs etc."""
+        pass
+
     def sanitize_html(self, html):
         from bs4 import BeautifulSoup
         doc = BeautifulSoup(html, "html.parser")
-        # find all link href and check if we load css
+        # fix all stylesheet imports
         elements = doc.find_all("link", rel="stylesheet")
         for e in elements:
-            self.sanitize_stylesheet(e)
+            href = e["href"]
+            uri = self.sanitize_stylesheet(href)
+            self.get_logger().debug("Changed link href {} to {}".format(href, uri))
+            e["href"] = uri
         elements = doc.find_all("script")
-        # elements = doc.xpath("//script")
+        # fix all javascript imports
         for e in elements:
-            self.sanitize_javascript(e)
+            src = e["src"]
+            uri = self.sanitize_javascript(src)
+            self.get_logger().debug("Changed script src {} to {}".format(src, uri))
+            e["src"] = uri
+        # fix all links
+        elements = doc.find_all("a")
+        for e in elements:
+            href = e["href"]
+            uri = self.sanitize_link(href)
+            self.get_logger().debug("Changed a href {} to {}".format(href, uri))
+            e["href"] = uri
+        # fix all image links
+        elements = doc.find_all("img")
+        for e in elements:
+            src = e["src"]
+            uri = self.sanitize_link(src)
+            self.get_logger().debug("Changed img src {} to {}".format(src, uri))
+            e["src"] = uri
         # write to string
         result = doc.prettify()
         return result
 
-    def sanitize_stylesheet(self, element):
-        # href = element.get("href")
-        href = element["href"]
+    def sanitize_stylesheet(self, href):
         # remove extension
         uri = href.rsplit(".")[0]
         # prefix with wiki
         uri = self.prefix_url(uri)
         if not uri.endswith("?action=raw&ctype=text/css"):
             uri += "?action=raw&ctype=text/css"
-        # update
-        self.get_logger().debug("Changed href {} to {}".format(href, uri))
-        # element.set("href", uri)
-        element["href"] = uri
-        return element
+        return uri
 
-    def sanitize_javascript(self, element):
-        # src = element.get("src")
-        src = element["src"]
+    def sanitize_javascript(self, src):
         uri = src.rsplit(".")[0]
         uri = self.prefix_url(uri)
         if not uri.endswith("?action=raw&ctype=text/js"):
             uri += "?action=raw&ctype=text/javascript"
-        # update
-        self.get_logger().debug("Changed src {} to {}".format(src, uri))
-        # element.set("src", uri)
-        element["src"] = uri
-        return element
+        return src
+
+    def sanitize_link(self, href):
+        url = href
+        # we have to be careful, we only want to change the uri not any params or internal links
+        parts = list(urlparse(href))
+        # get a clean base url
+        base_url = self.get_base_url()
+        base_url = base_url.replace("https://", "")
+        base_url = base_url.replace("http://", "")
+        # extract local path
+        path = str(parts[2]) #.strip("/")
+        if path != "" and parts[1] in ("", base_url):
+            target = ""
+            pieces = path.rsplit("#", 1)
+            path = pieces[0]
+            if len(pieces) > 1:
+                target = pieces[-1]
+            target = target.strip("/")
+            path = path.rsplit(".", 1)[0]
+            if path == "/":
+                path = "index"
+            # we will set the parts["netloc"] to the right server
+            # so we do not worry about that part
+            path = self.prefix_title(path)
+            # reassemble
+            parts[0] = "http"
+            parts[1] = base_url
+            parts[2] = path + target
+            url = urlunparse(parts)
+        return url
 
     @classmethod
     def create_parser(cls, parser=None):

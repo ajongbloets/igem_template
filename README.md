@@ -54,9 +54,12 @@ strip: 1
 
 2. Run the upload script:
 
-`igem_upload.py --ini igem.ini upload ./build/*`
+`igem_upload.py --ini igem.ini upload "./build/*`"
 
 This will upload all files in the build directory to the iGEM Wiki.
+
+NOTE: The quotes around the file pattern may be necessary to prevent the terminal from expanding it before passing it
+ to Python.
 
 ## TODO's
 

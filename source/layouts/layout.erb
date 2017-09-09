@@ -1,14 +1,16 @@
+<% if development? %>
+	<%= partial "layouts/wiki_header" %>
+<% end %>
 <html>
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title><%= current_page.data.title %></title>
 	<!-- include normalizer -->
 	<%= stylesheet_link_tag "normalize" %>
 	<!-- include auto generated css -->
-	<%= stylesheet_link_tag "all" %>
-	<!-- include bootstrap cover design -->
-	<!-- <%= stylesheet_link_tag "cover" %> -->
+	<%= stylesheet_link_tag "all_cover" %>
 	<!-- include auto generated javascript -->
 	<%= javascript_include_tag "all" %>
 </head>
@@ -22,9 +24,9 @@
         <div class="inner">
           <h3 class="masthead-brand">Cover</h3>
           <nav class="nav nav-masthead">
-            <a class="nav-link active" href="#">Home</a>
-            <a class="nav-link" href="#">Features</a>
-            <a class="nav-link" href="#">Contact</a>
+          <% data.navigation.links.each do |link| %>
+            <%= link_to link.title, link.url, :class => "nav-link " << is_current_page(link.url) %>
+          <% end %>
           </nav>
         </div>
       </div>
@@ -41,3 +43,6 @@
     </div>
   </div>
 </div>
+<% if development? %>
+	<%= partial "layouts/wiki_footer" %>
+<% end %>

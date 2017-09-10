@@ -18,8 +18,8 @@
 	}
 
 	#mw-content-text > .container {
-		padding: 78px 0px 0px 60px;
-        width: 100%;
+		padding: 80px 0px 62px;
+        width: auto;
 	}
 
 	.footer {
@@ -39,14 +39,18 @@
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
 	<a class="navbar-brand" href="#">Fixed navbar</a>
-	<ul class="navbar-nav mr-auto">
-	<nav class="nav nav-masthead">
-    <% data.navigation.links.each do |link| %>
-        <% content_tag :li, :class => "nav-item " << is_current_page(link.url) do %>
-            <%= link_to link.title, link.url, :class => "nav-link " %>
-        <% end %>
-    <% end %>
-    </ul>
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	<div class="collapse navbar-collapse" id="navbarCollapse">
+		<ul class="navbar-nav mr-auto">
+			<% data.navigation.links.each do |link| %>
+				<% content_tag :li, :class => "nav-item " << is_current_page(link.url) do %>
+                    <%= link_to link.title, link.url, :class => "nav-link " %>
+				<% end %>
+			<% end %>
+		</ul>
+	</div>
 </nav>
 
 <div class="container">

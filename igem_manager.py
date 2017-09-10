@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Simple python script to interact with the iGem Wiki API
 
 API Documentation from:
@@ -36,7 +37,7 @@ def ask_confirm(question, max_attempts=1):
             break
         attempt += 1
     if attempt == max_attempts:
-        print("Did not receive a valid answer, taking NO as answer")
+        print("You did not give a valid answer, taking NO as answer")
     return result
 
 
@@ -69,7 +70,7 @@ class IGemStreamHandler(logging.StreamHandler):
         self.setLevel(level)
 
 
-class IGemWikiManager(object):
+class BaseIGemWikiManager(object):
 
     api_url = "https://2017.igem.org/wiki/api.php"
     login_url = "https://igem.org/Login2"
@@ -146,8 +147,13 @@ class IGemWikiManager(object):
     def set_quiet(self, state):
         self._quiet = state is True
 
+    def get_base_host(self):
+        return "{}.igem.org".format(self.year)
+
     def get_base_url(self):
-        return "http://{}.igem.org".format(self.year)
+        # NOTE: Although I would love to use HTTPS the wiki loads stylesheets with HTTP
+        # So forcing HTTPS would lead to the "page contains insecure..." warning/error
+        return "http://{}".format(self.get_base_host())
 
     def get_api_url(self):
         return "https://{}.igem.org/wiki/api.php".format(self.year)
@@ -187,88 +193,243 @@ class IGemWikiManager(object):
             url += "/"
         return "{}{}".format(url, title)
 
+    def http_get(self, url, _is_json=True, **kwargs):
+        session = self._session
+        if self.runs_dry():
+            result = None
+        else:
+            result = session.get(url, **kwargs)
+            if result.status_code == 200:
+                response = result
+                if _is_json:
+                    response = result.json()
+                self.get_logger().debug("Response to {}:\n{}".format(url, response))
+            else:
+                self.get_logger().debug("Response to {}:\n{}".format(url, result))
+        return result
+
+    def http_post(self, url, _is_json=True, **kwargs):
+        session = self._session
+        if self.runs_dry():
+            result = None
+        else:
+            result = session.post(url, **kwargs)
+            if result.status_code == 200:
+                response = result
+                if _is_json:
+                    response = result.json()
+                self.get_logger().debug("Response to {}:\n{}".format(url, response))
+            else:
+                self.get_logger().debug("Response to {}:\n{}".format(url, result))
+        return result
+
+    def create_json(self, action, _params=None, **kwargs):
+        if _params is None:
+            _params = {}
+        result = {
+            'format': 'json',
+            'action': action
+        }
+        if self.token is not None:
+            result["token"] = self.token
+        _params = {k: v for k, v in _params.items() if v not in (None, "")}
+        result.update(_params)
+        kwargs = {k: v for k, v in kwargs.items() if v not in (None, "")}
+        result.update(kwargs)
+        return result
+
     def login(self, username=None, password=None):
         """Login to the iGEM Wiki and obtain token"""
-        session = self._session
+        result = False
         if username is not None:
             self.username = username
         if password is not None:
             self.password = password
         if None not in (self.username, self.password):
-            # login to igem
-            if self.runs_dry():
-                self._token = "--DRY RUN --"
-            else:
-                r1 = session.post(self.login_url, data={
-                    'return_to': '',
-                    'username': self.username,
-                    'password': self.password,
-                    'Login': 'Login'
-                })
-                self.get_logger().debug("Response to Login:\n{}".format(r1.url))
+            r1 = self.http_post(self.login_url, data={
+                'return_to': '',
+                'username': self.username,
+                'password': self.password,
+                'Login': 'Login'
+            }, _is_json=False)
+            if r1 is not None:
                 if r1.url.endswith("Login_Confirmed"):
-                    # get token
-                    r2 = session.get(self.api_url, params={
-                        'format': 'json',
-                        'action': 'query',
-                        'meta': 'tokens',
-                    })
-                    self.get_logger().debug("Response to Query Token:\n{}".format(r2.json()))
-                    self._token = r2.json()['query']['tokens']['csrftoken']
-        self.get_logger().info("Obtained Edit Token: {}".format(self.token))
+                    result = True
+            else:
+                result = True
+        if result:
+            self.obtain_token()
         return self.token is not None
+
+    def obtain_token(self):
+        params = self.create_json(action='query', meta='tokens')
+        r2 = self.http_get(self.api_url, params=params)
+        if r2 is None:
+            self._token = "--- DRY RUN TOKEN ---"
+        elif r2.status_code == 200:
+                self._token = r2.json()['query']['tokens']['csrftoken']
+        self.get_logger().info("Obtained Edit Token: {}".format(self.token))
+        return self.token
 
     def edit(self, title, text):
         """Edit a page (replaces content with provided text)"""
-        session = self._session
         # create correct page title
         page = self.prefix_title(title)
-        if self.runs_dry():
-            result = True
-        else:
-            r = session.post(self.api_url, data={
-                'format': 'json',
-                'action': 'edit',
-                'assert': 'user',
-                'text': text,
-                'title': page,
-                'token': self.token,
-            })
-            self.get_logger().debug("Response to Edit:\n{}".format(r.json()))
+        data = self.create_json(
+            action="edit", _params={
+            'assert': "user", 'text': text, 'title': page
+        })
+        r = self.http_post(self.api_url, data=data)
+        if r is not None:
             result = 'error' not in r.json().keys()
+        else:
+            result = True
         self.get_logger().info("Edit Page {} => {}: {}".format(title, page, result))
         return result
 
-    def page_search(self, prefix):
+    def page_search(self, prefix, limit=50, apcontinue=None):
         """Searches for all pages with the given prefix"""
-        pass
+        results = []
+        prefix = self.prefix_title(prefix)
+        params = self.create_json(
+            action="query", list="allpages", apprefix=prefix, aplimit=limit, apcontinue=apcontinue
+        )
+        r = self.http_get(self.api_url, params=params)
+        if r is not None:
+            json = r.json()
+            if "query" in json.keys() and "allpages" in json["query"].keys():
+                results = r.json()["query"]["allpages"]
+            # check if we can get more
+            if "query-continue" in json.keys() and "allpages" in json["query-continue"].keys():
+                apcontinue = json["query-continue"]["allpages"]["apcontinue"]
+                results += self.page_search(prefix, limit=limit, apcontinue=apcontinue)
+        return results
 
     def delete(self, title, reason=None):
         """Deletes a title"""
         result = False
-        session = self._session
         # generate page name
         page = self.prefix_title(title)
         # generate POST data
-        data = {
-            'format': 'json',
-            'action': 'delete',
-            'title': page,
-            'token': self.token
-        }
+        data = self.create_json(action="delete", title=page, reason=reason)
         response = True
         if not self.is_quiet():
             response = ask_confirm("Do you really want to DELETE page {} => {}?".format(title, page))
         if response:
-            if isinstance(reason, str) and reason != "":
-                data["reason"] = reason
-            if self.runs_dry():
+            r = self.http_post(self.api_url, data=data)
+            if r is None:
                 result = True
             else:
-                r = session.post(self.api_url, data=data)
-                self.get_logger().debug("Response to Delete:\n{}".format(r.json()))
                 result = "error" not in r.json().keys()
         self.get_logger().info("Delete Page {} => {}: {}".format(title, page, result))
+        return result
+
+    def upload(self, title, path, comment=None, chunk_size=1024*1024):
+        """Will upload a file as an (image)attachment
+
+        :param title: The name of the page
+        :param path: Path to file to read
+        :param comment: Comment to send with upload
+        :param chunk_size: Size of the chunks to upload file in  (Default 1 MB)
+        :rtype: dict[str, str | bool | int | float]
+        """
+        # result = {'result': False}
+        page = self.prefix_title(title)
+        # get total file size
+        fs = os.path.getsize(path)
+        if fs < chunk_size:
+            result = self._upload_file(page, path, comment=comment)
+        else:
+            result = self._upload_chunks(page, path, comment=comment, chunk_size=chunk_size)
+        return result
+
+    def _upload_file(self, page, source, comment=None):
+        result = {'result': False}
+        data = self.create_json(
+            action="upload", filename=page, comment=comment
+        )
+        files = {'file': open(source, 'rb')}
+        r = self.http_post(self.api_url, files=files, data=data)
+        if r is None:
+            result['result'] = True
+            result['url'] = "http://DRY.RUN/{}".format(page)
+            result["mime"] = "text/plain"
+        else:
+            upload = r.json().get("upload")
+            if upload is not None and upload.get("result") == "Warning":
+                # retry
+                key = upload.get("filekey")
+                data = self.create_json(
+                    action="upload", filename=page, comment=comment, filekey=key, ignorewarnings=1
+                )
+                r = self.http_post(self.api_url, data=data)
+                if r is not None:
+                    upload = r.json().get("upload")
+            if upload is not None and "imageinfo" in upload.keys():
+                result["result"] = True
+                result["url"] = upload["imageinfo"]["url"]
+                result["mime"] = upload["imageinfo"]["mime"]
+        return result
+
+    def _upload_chunks(self, page, source, comment=None, chunk_size=1024*1024):
+        result = {'result': False}
+        # get total file size
+        fs = os.path.getsize(source)
+        # get file content
+        offset = 0
+        filekey = None
+        with open(source, "rb") as src:
+            while True:
+                chunk = src.read(chunk_size)
+                if not chunk:
+                    result["result"] = True
+                    break
+                # send piece
+                response = self._upload_chunk(page, chunk, offset, fs, key=filekey, comment=comment)
+                if "filekey" in response.keys():
+                    filekey = filekey
+                if 'offset' in response.keys():
+                    offset = offset
+                else:
+                    offset += chunk_size
+                if response.get("result") == "Success":
+                    result["result"] = True
+                    break
+                if "error" in response.keys():
+                    break
+        if result.get("result"):
+            # commit
+            data = self.create_json(action="upload", filename=page, filekey=filekey, comment=comment)
+            r = self.http_post(self.api_url, data=data)
+            if r is None:
+                result['result'] = True
+                result['url'] = "-- DRY RUN + {} --".format(page)
+                result["mime"] = "text/plain"
+            else:
+                upload = r.json().get("upload")
+                if upload is not None and "imageinfo" in upload.keys():
+                    result["result"] = True
+                    result["url"] = upload["imageinfo"]["url"]
+                    result["mime"] = upload["imageinfo"]["mime"]
+        return result
+
+    def _upload_chunk(self, page, chunk, offset, filesize, key=None, comment=None):
+        result = {'result': False}
+        data = self.create_json(
+            action='upload', filename=page, filesize=filesize, offset=offset, chunk=chunk,
+            filekey=key, comment=comment
+        )
+        r = self.http_post(self.api_url, data=data)
+        if r is None:
+            result['result'] = 'Success'
+            result['offset'] = filesize
+            result['filekey'] = "-- DRY RUN KEY --"
+        else:
+            upload = r.json().get("upload")
+            if upload is not None:
+                result['result'] = upload.get("result")
+                result['filekey'] = upload.get("filekey")
+                result['offset'] = upload.get("offset")
         return result
 
     @classmethod
@@ -286,8 +447,11 @@ class IGemWikiManager(object):
             root_log.addHandler(hdlr)
         if "ini" in arguments.keys():
             ini_file = arguments.get("ini")
-            settings = cls.load_ini(ini_file)
-            arguments.update(settings)
+            settings = dict(cls.load_ini(ini_file))
+            for k, v in arguments.items():
+                if v is not None:
+                    settings[k] = v
+            arguments = settings
         # build object
         team = arguments.get("team")
         year = arguments.get("year")
@@ -315,11 +479,11 @@ class IGemWikiManager(object):
             help="Names of the file to upload"
         )
         parser.add_argument(
-            '-q', '--quiet', dest="quiet", action="store_true",
+            '-q', '--quiet', dest="quiet", action="store_true", default=None,
             help="Quietly accept all questions."
         )
         parser.add_argument(
-            '-n', '--dry', dest="dry", action="store_true",
+            '-n', '--dry', dest="dry", action="store_true", default=None,
             help="Do not send anything to the server."
         )
         parser.add_argument(
@@ -390,5 +554,47 @@ class IGemWikiManager(object):
                 print("Cannot load {}:\n{}".format(location, e))
         return results
 
+
+class IGemWikiManager(BaseIGemWikiManager):
+    """implements actions like edit, search and delete"""
+
+    def execute(self, action):
+        if action == "search":
+            self.execute_search()
+        if action == "delete":
+            if self.login():
+                self.execute_delete()
+
+    def execute_search(self):
+        for pattern in self._files:
+            results = self.page_search(pattern)
+            uri = self.prefix_title(pattern)
+            print("## Pages starting with '{}':".format(uri))
+            for idx, result in enumerate(results):
+                print("{index:3}. {title} [{page_id}]".format(
+                    index=idx, title=result.get("title"), page_id=result.get("pageid"))
+                )
+
+    def execute_delete(self):
+        for title in self._files:
+            results = self.page_search(title)
+            # process the pages
+            pages = filter(lambda p: p is not None, [p.get("title") for p in results])
+            # now delete them
+            results = 0
+            print("## Found {} pages matching to {}".format(len(pages), title))
+            for page in pages:
+                results += 1 if self.delete(page) else 0
+            print("## Deleted {} pages".format(results))
+
+    @classmethod
+    def create_parser(cls, parser=None):
+        parser = super(IGemWikiManager, cls).create_parser(parser)
+        parser.description = "Simple Interface to the iGEM Wiki"
+        return parser
+
+    def parse_arguments(self, arguments):
+        super(IGemWikiManager, self).parse_arguments(arguments)
+
 if __name__ == "__main__":
-    pass
+    IGemWikiManager.run()

@@ -86,6 +86,6 @@ body,
 
 /* remove https link styling */
 #bodyContent a[href ^="https://"], .link-http {
-    background-color: inherit;
+    background: inherit;
     padding: inherit;
 }

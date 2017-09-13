@@ -20,22 +20,55 @@
 
     <div class="cover-container">
 
-      <div class="masthead clearfix">
-        <div class="inner">
-          <h3 class="masthead-brand">Cover</h3>
-          <nav class="nav nav-masthead">
-          <% data.navigation.links.each do |link| %>
-            <%= link_to link.title, link.url, :class => "nav-link " << is_current_page(link.url) %>
-          <% end %>
-          </nav>
+      <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand nav-link" href="#">Cyanofactory</a>
+          </div>
+          <ul class="list-inline nav navbar-right">
+            <li class="list-inline-item dropdown"><a class="nav-link" href="#">Project<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a class="nav-link" href="#">Modeling</a></li>
+                <li><a class="nav-link" href="#">Glyoxylate Shunt</a></li>
+                <li><a class="nav-link" href="#">Transport</a></li>
+                <li><a class="nav-link" href="#">Biosensor</a></li>
+              </ul>
+            </li>
+            <li class="list-inline-item dropdown"><a class="nav-link" href="#">Practices<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a class="nav-link" href="#">Carbon Efficiency</a></li>
+                <li><a class="nav-link" href="#">Outreach</a></li>
+                <li><a class="nav-link" href="#">Articles</a></li>
+                <li><a class="nav-link" href="#">Entrepreneurship</a></li>
+                <li><a class="nav-link" href="#">Safety</a></li>
+              </ul>
+            </li>
+            <li class="list-inline-item dropdown"><a class="nav-link" href="#">Lab<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a class="nav-link" href="#">Parts</a></li>
+                <li><a class="nav-link" href="#">Interlab Study</a></li>
+                <li><a class="nav-link" href="#">Lab Journal</a></li>
+                <li><a class="nav-link" href="#">Protocol</a></li>
+                <li><a class="nav-link" href="#">Methods</a></li>
+              </ul>
+            </li>
+            <li class="list-inline-item dropdown"><a class="nav-link" href="#">Team<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a class="nav-link" href="#">Attributions</a></li>
+                <li><a class="nav-link" href="#">Collaborations</a></li>
+                <li><a class="nav-link" href="#">Sponsors</a></li>
+              </ul>
+            </li>
+            <li class="list-inline-item"><a class="nav-link" href="#">Achievements</a></li>
+          </ul>
         </div>
-      </div>
+      </nav>
 
       <div class="inner cover">
         <%= yield %>
       </div>
 
-      <div class="mastfoot">
+      <div class="footer">
         <div class="inner">
           <p>Cover template for <a href="https://getbootstrap.com">Bootstrap</a>, by <a href="https://twitter.com/mdo">@mdo</a>.</p>
         </div>

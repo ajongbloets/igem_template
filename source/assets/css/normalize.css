@@ -1,22 +1,22 @@
 
 /* Default Font and Sizing of Website */
 
-@media screen and (max-width: 760px) {
+/*@media screen and (max-width: 760px) {*/
   /*Make dropdown links appear inline*/
-  ul {
+  /*ul {
     position: static;
     display: none;
-  }
+  }*/
   /*Create vertical spacing*/
-  li {
+  /*li {
     margin-bottom: 1px;
   }
-  /*Make all menu links full width*/
+  Make all menu links full width
   ul li,
   li a {
     width: 100%;
-  }
-}
+  }*/
+/*}*/
 
 /* hide undesired wiki objects */
 
@@ -89,3 +89,47 @@ body,
     background: inherit;
     padding: inherit;
 }
+
+/*hide menu bar unless it is moused over*/
+/*#top_menu_14,
+#top_menu_14 #top_menu_inside,
+#top_menu_14 #user_item,
+#top_menu_14 a {
+  background-color: transparent !important;
+  color: transparent !important; 
+  border: none !important;
+}
+
+#top_menu_14:hover{
+  background-color: #383838;
+  border-bottom: 2px solid black;
+}
+
+#top_menu_inside:hover{
+  color: white;
+  border-left: 1px solid #c8c8c8;
+  border-right: 1px solid #c8c8c8;
+}
+
+#top_menu_14 a:hover {
+  color: white;
+}*/
+#top_menu_under{
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9998;
+  background-color: #333;
+}
+
+#top_menu_14{
+  display: none;
+}
+
+#top_menu_under:hover + #top_menu_14,
+#top_menu_14:hover{
+  display:inherit;
+}
+
+

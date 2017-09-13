@@ -7,6 +7,7 @@ a,
 a:focus,
 a:hover {
   color: #fff;
+  text-decoration: none;
 }
 
 /* Custom default button */
@@ -14,7 +15,6 @@ a:hover {
 .btn-secondary:hover,
 .btn-secondary:focus {
   color: #333;
-  text-shadow: none; /* Prevent inheritance from `body` */
   background-color: #fff;
   border: .05rem solid #fff;
 }
@@ -34,7 +34,6 @@ body,
 body {
   color: #fff;
   text-align: center;
-  text-shadow: 0 .05rem .1rem rgba(0,0,0,.5);
 }
 
 /* Extra markup and styles for table-esque vertical and horizontal centering */
@@ -43,13 +42,13 @@ body {
   width: 100%;
   height: 100%; /* For at least Firefox */
   min-height: 100%;
-  -webkit-box-shadow: inset 0 0 5rem rgba(0,0,0,.5);
-          box-shadow: inset 0 0 5rem rgba(0,0,0,.5);
 }
+
 .site-wrapper-inner {
   display: table-cell;
   vertical-align: top;
 }
+
 .cover-container {
   margin-right: auto;
   margin-left: auto;
@@ -65,56 +64,71 @@ body {
  * Header
  */
 
-.masthead {
-  margin-bottom: 2rem;
+.navbar {
+  top: 0;
+  position: fixed;
+  width: 100%;
+  padding: 0;
+  z-index: 100;
 }
 
-.masthead-brand {
+.navbar > .container-fluid {
+  padding: 50px 20px 0 20px;
+  align-items: baseline;
+  line-height: 0;
+  background-color: #333;
+  border-bottom: 2px solid black;
+}
+
+.navbar-brand {
+  font-size: x-large;
+}
+
+.navbar-right li {
   margin-bottom: 0;
+  bottom: 0;
+}
+.nav-link {
+  padding: 0 15px;
 }
 
-.nav-masthead .nav-link {
-  padding: .25rem 0;
-  font-weight: bold;
-  color: rgba(255,255,255,.5);
-  background-color: transparent;
-  border-bottom: .25rem solid transparent;
+.nav-link:hover{
+  color: rgba(150,150,150,1);
 }
 
-.nav-masthead .nav-link:hover,
-.nav-masthead .nav-link:focus {
-  border-bottom-color: rgba(255,255,255,.25);
+.navbar .dropdown-menu {
+ margin-top: 0px;
+ background-color: #333;
+ border: 2px solid black;
 }
 
-.nav-masthead .nav-link + .nav-link {
-  margin-left: 1rem;
+.dropdown:hover > .dropdown-menu {
+  display: block;
 }
 
-.nav-masthead .active {
-  color: #fff;
-  border-bottom-color: #fff;
+.caret {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 2px;
+    vertical-align: middle;
+    border-top: 4px dashed;
+    border-top: 4px solid \9;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
 }
-
-@media (min-width: 48em) {
-  .masthead-brand {
-    float: left;
-  }
-  .nav-masthead {
-    float: right;
-  }
-}
-
 
 /*
- * Cover
+ * Inner/Cover
  */
 
-.cover {
-  padding: 0 1.5rem;
+.inner {
+        margin: auto;
+        margin-top: 95px; /* total space of iGEM navbar and our navbar */
 }
-.cover .btn-lg {
-  padding: .75rem 1.25rem;
-  font-weight: bold;
+
+.inner.cover {
+    padding: 0;
 }
 
 
@@ -122,41 +136,3 @@ body {
  * Footer
  */
 
-.mastfoot {
-  color: rgba(255,255,255,.5);
-}
-
-
-/*
- * Affix and center
- */
-
-@media (min-width: 40em) {
-  /* Pull out the header and footer */
-  .masthead {
-    position: fixed;
-    top: 0;
-  }
-  .mastfoot {
-    position: fixed;
-    bottom: 0;
-  }
-  /* Start the vertical centering */
-  .site-wrapper-inner {
-    vertical-align: middle;
-  }
-  /* Handle the widths */
-  .masthead,
-  .mastfoot,
-  .cover-container {
-    width: 100%; /* Must be percentage or pixels for horizontal alignment */
-  }
-}
-
-@media (min-width: 62em) {
-  .masthead,
-  .mastfoot,
-  .cover-container {
-    width: 42rem;
-  }
-}

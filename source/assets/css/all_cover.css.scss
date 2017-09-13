@@ -2,8 +2,11 @@
 
 /* Import includes */
 #bodyContent {
+    
     @import "bootstrap";
     @import "_partials/cover";
+    @import "_partials/home";
+
 
     color: #fff;
     text-align: center;
@@ -11,39 +14,6 @@
 
     .site-wrapper {
         background-color: #333;
-    }
-
-    .masthead {
-        padding-top: 18px;
-    }
-
-    .inner {
-        margin: auto;
-    }
-
-    @media (min-width: 40em) {
-        .masthead {
-            position: inherit;
-            top: inherit;
-        }
-        .mastfoot {
-            position: inherit;
-            bottom: inherit;
-        }
-    }
-
-    @media (min-width: 48em) {
-        .inner {
-            width: 42rem;
-        }
-    }
-
-    .inner.cover {
-        padding: 0rem 0rem 0rem;
-    }
-
-    .mastfoot {
-        line-height: 1.5rem;
     }
 
     /* remove https link styling */

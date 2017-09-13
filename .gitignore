@@ -10,3 +10,6 @@ Gemfile.lock
 
 # ignore ini file
 *.ini
+
+# ignore movies (files too large)
+source/images/movies/

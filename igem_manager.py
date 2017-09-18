@@ -324,7 +324,7 @@ class BaseIGemWikiManager(object):
         self.get_logger().info("Delete Page {} => {}: {}".format(title, page, result))
         return result
 
-    def upload(self, title, path, comment=None, chunk_size=1024*1024):
+    def upload(self, title, path, comment=None, chunk_size=10*1024*1024):
         """Will upload a file as an (image)attachment
 
         :param title: The name of the page
@@ -371,7 +371,7 @@ class BaseIGemWikiManager(object):
                 result["mime"] = upload["imageinfo"]["mime"]
         return result
 
-    def _upload_chunks(self, page, source, comment=None, chunk_size=1024*1024):
+    def _upload_chunks(self, page, source, comment=None, chunk_size=10*1024*1024):
         result = {'result': False}
         # get total file size
         fs = os.path.getsize(source)

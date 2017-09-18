@@ -19,7 +19,7 @@ __author__ = "Joeri Jongbloets <joeri@jongbloets.net>"
 
 class IGemFile(object):
 
-    IMAGE_EXTENSIONS = ('jpg', 'jpeg', 'png', 'bmp', 'gif')
+    IMAGE_EXTENSIONS = ('jpg', 'jpeg', 'png', 'bmp', 'gif','mp4')
 
     def __init__(self, path, destination=None, prefix=None, mime=None, **kwargs):
         self._path = path
@@ -129,6 +129,8 @@ class IGemUploader(BaseIGemWikiManager):
             if self.login():
                 uploads = self.upload_files()
                 self.get_logger().info("Uploaded {} files".format(uploads))
+            else:
+                self.get_logger().info("Unable to login with the given username/password")
 
     def collect_patterns(self, patterns):
         results = []
@@ -212,6 +214,7 @@ class IGemUploader(BaseIGemWikiManager):
                     f.url = url
                 if mime is not None:
                     f.mime = mime
+                result = result['result']
         else:
             if content is None and f.exists():
                 with open(f.path, "rb") as src:
@@ -302,8 +305,8 @@ class IGemUploader(BaseIGemWikiManager):
         name = self.prefix_title(name)
         f.destination = self.prefix_title(name)
         if f.exists():
-            self.get_logger().info("Upload attachment {}".format(f))
             result = self.upload_file(f)
+            self.get_logger().info("Upload attachment {} => {}: {}".format(f.path, f.url, result))
         return result
 
     def prepare_html(self, html):
@@ -340,6 +343,14 @@ class IGemUploader(BaseIGemWikiManager):
             if src is not None:
                 uri = self.fix_image_link(src)
                 self.get_logger().debug("Changed img src {} to {}".format(src, uri))
+                e["src"] = uri
+        # fix all movie links
+        elements = doc.find_all("source")
+        for e in elements:
+            src = e.get("src")
+            if src is not None:
+                uri = self.fix_image_link(src)
+                self.get_logger().debug("Changed source src {} to {}".format(src, uri))
                 e["src"] = uri
         # write to string
         result = doc.prettify()
@@ -451,9 +462,13 @@ class IGemUploader(BaseIGemWikiManager):
 
         def is_match(f):
             matches_names = fn in (f.destination, f.path, f.full_path, f.url)
-            matches_paths = fn.strip("./") in (
-                f.destination.strip("./"), f.path.strip("./"), f.full_path.strip("./"), f.url.strip("./")
-            )
+            matches_paths = False
+            try:
+                matches_paths = fn.strip("./") in (
+                        f.destination.strip("./"), f.path.strip("./"), f.full_path.strip("./"), f.url.strip("./")
+                )
+            except:
+                print(f.destination, f.path, f.full_path, f.url)
             matches_url = url in (f.destination, f.url)
             return matches_names or matches_paths or matches_url
 

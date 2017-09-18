@@ -136,3 +136,14 @@ body {
  * Footer
  */
 
+ .footer {
+  width: 100%;
+ }
+
+.footer-col-left {
+  display: flex;
+  flex-direction: row;
+  height: 400px;
+  width: 75%;
+}
+

@@ -1,37 +1,118 @@
-/* Text boxes*/
-.home-text-container {
-	background-color: rgba(25, 25, 25, 1);
+/*
+* Summaries
+*/
+
+/* Summary container and columns */
+div[class^="summary-"] {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+
+.summary-container {
 	min-height: 275px;
+	align-items: stretch !important;
+	background-color: rgba(25,25,25,1);
 }
 
-.row {
-	margin: 0; /* Default is for some reason set to -15px side margins*/
+/* Summary columns */
+.summary-col-left {
+	width: 20%;
 }
 
-div[class^="col-"] {
-	padding: 0;
-  	margin: 0;	
+.summary-col-right {
+	width: 10%;
+	margin-left: 10%;
 }
 
-.home-text-container div[class^="col-"] {
-  min-height: 275px;
+.summary-col-mid {
+	width: 60% !important;
 }
 
-/* vertically align text*/
-.home-text-container p[class$="-text"] {
-	position: relative;
-	top: 50%; 
-	transform: translateY(-50%);
-}
-
-.home-text-container .vertical-text {
+.vertical-text {
+	font-size: 42px; 
+	writing-mode: vertical-lr;
 	text-align: center;
-	font-size: 48px; 
-	transform: translateY(-50%) rotate(90deg) !important;
+	margin: 10px 0px;
+	z-index: 100000;
 }
 
-.home-text {
+.summary-text {
 	text-align: left;
 	font-size: 24px;
+	margin: 10px;
 }
+
+.in-text-link {
+	color:#00ffff
+}
+
+.in-text-link:hover {
+	color:#008888
+}
+
+/*Spacer*/
+
+.home-spacer img {
+	width: 76px;
+	height: 275px;
+}
+
+/*Modules Summary*/
+.home-spacer#modules {
+	width: 100%;
+	height: 788px;
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+  	background-image: -webkit-linear-gradient(-65deg, #333 50%, rgba(25,25,25,1) 50%);
+}
+
+.home-spacer#modules img {
+	height: 394px;
+}
+
+.summary-container#modules {
+	position: relative;
+}
+
+.summary-container#modules > div[class^="summary-col-"] {
+	width: 10%;
+	position: relative;
+}
+
+.summary-container#modules > .summary-col-mid {
+	width: 80% !important;
+	align-items: flex-start !important;
+}
+
+.summary-container#modules > .summary-col-right {
+	margin-left: 0;
+}
+
+.summary-modules-outer {
+	flex-direction: column !important;
+	flex-wrap: nowrap;
+}
+
+.animated-module-icon {
+	width: 100px;
+	height: 100px;
+}
+
+.modules-summary-text {
+	padding: 0px 15px;
+}
+
+.modules-summary-text > h1 {
+	font-size: large;
+}
+
+.modules-summary-text > p {
+	font-size: medium;
+	text-align: left;
+}
+
 

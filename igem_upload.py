@@ -190,7 +190,7 @@ class IGemUploader(BaseIGemWikiManager):
         resources = filter(lambda f: f.is_javascript(), files)
         print("## Uploading {} javascripts".format(len(resources)))
         for resource in resources:
-            results += 1 if self.upload_stylesheet(resource) else 0
+            results += 1 if self.upload_javascript(resource) else 0
         # upload all html
         resources = filter(lambda f: f.is_html(), files)
         print("## Uploading {} html files".format(len(resources)))
@@ -283,8 +283,8 @@ class IGemUploader(BaseIGemWikiManager):
             f.destination = f.path
         name = f.destination
         name = name.lstrip("./")
-        if name.endswith(".css"):
-            name = name.replace(".css", "")
+        if name.endswith(".js"):
+            name = name.replace(".js", "")
         f.destination = self.prefix_title(name)
         if f.exists():
             # obtain content

@@ -140,10 +140,18 @@ body {
   width: 100%;
  }
 
+
+.footer > div[class^="footer-col-"]{
+    display: flex;
+    flex-direction: row;
+}
+
 .footer-col-left {
-  display: flex;
-  flex-direction: row;
-  height: 400px;
   width: 75%;
+  flex-wrap: wrap;
+}
+
+.footer-col-right {
+  width: 25%;
 }
 

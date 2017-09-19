@@ -12,6 +12,7 @@ function setModuleSummaryHeight () {
 	var midHeight = document.querySelector('.home-spacer#modules').offsetHeight / 2.0;
 	var angle = 25 * Math.PI / 180.0;
     var icons = document.getElementsByClassName('summary-modules-outer');
+    console.log("test")
     for (i=0; i<icons.length; i++){
     	icons[i].style["margin-top"] = midHeight - (icons[i].offsetLeft - midWidth) * Math.tan(angle);
     }
